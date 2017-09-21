@@ -1,0 +1,7 @@
+dir x : change directory to x
+ls: Check filenames in current directory
+git status: check what files in the directory match with the online repository
+git add x: Add file x to the "to be committed" queue
+git commit -m x: commit all files in queue and add message x. If forgot to add message: hit esc:wq
+git push: push files to online repository.
+git pull: pull files from the online repository. Make sure the directory is the one of your github repository.

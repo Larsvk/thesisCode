@@ -1,10 +1,11 @@
 ## Script for calculating descriptive statistics.
+library(zoo)
 library(dplyr)
 load("scriptie_data.Rdata")
 
 ## Remove all rows where there are no open accounts as these will bias the descriptive statistics to 0
 dframe <- dframe[-which(dframe$open_rek==0),]
-
+#dframe <- dframe[which(!is.na(dframe$Total_volume)),]
 ## Construct a dummy variable for churn
 dframe$Churn <- 0
 dframe$Churn[which(dframe$open_rek==dframe$gesloten_rek)]<-1
@@ -29,8 +30,7 @@ rownames(pop_descriptives) <- c("Open_rek", "Total_volume", "Rel_duur", "Trans_t
 pop_descriptives <- format(pop_descriptives, decimal.mark = ",")
 
 ## Write to csv for reporting purposes
-write.csv(pop_descriptives,"C:/Users/l.vankempen/Desktop/Thesis Paper/Programming/Descriptive Statistics/population_descriptives.csv")
-rm(pop_means,pop_mins,pop_max, pop_std_dev, pop_descriptives)
+write.csv(pop_descriptives,"C:/Users/l.vankempen/Documents/Thesis Paper/Programming/Descriptive Statistics/population_descriptives.csv")
 
 
 ## Calculate weekly descriptives.
@@ -38,7 +38,7 @@ weekly_churners <- dframe %>% group_by(yearweek) %>% summarise(weekly_churn = su
 avg_weekly_churners <- mean(weekly_churners$weekly_churn)
 min_weekly_churners <- min(weekly_churners$weekly_churn)
 max_weekly_churners <- max(weekly_churners$weekly_churn)
-
+write.csv(weekly_churners, "C:/Users/l.vankempen/Documents/Thesis Paper/Programming/Descriptive Statistics/weekly_churners.csv")
 weekly_means <- dframe %>% group_by(yearweek) %>% summarise(mean(open_rek), mean(Total_volume), mean(Rel_duur), mean(trans_tot), mean(App_login),
                                                mean(Web_login), mean(app_page), mean(web_page), mean(OPENS), mean(CLICKS))
 weekly_means <- format(weekly_means, decimal.mark = ",")
@@ -52,8 +52,20 @@ weekly_std_devs <- dframe %>% group_by(yearweek) %>% summarise(sd(open_rek), sd(
                                                            sd(Web_login), sd(app_page), sd(web_page), sd(OPENS), sd(CLICKS))
 weekly_std_devs <- format(weekly_std_devs, decimal.mark = ",")
 
-write.csv(weekly_means, "C:/Users/l.vankempen/Desktop/Thesis Paper/Programming/Descriptive Statistics/weekly_means.csv")
-write.csv(weekly_mins, "C:/Users/l.vankempen/Desktop/Thesis Paper/Programming/Descriptive Statistics/weekly_mins.csv")
-write.csv(weekly_max,"C:/Users/l.vankempen/Desktop/Thesis Paper/Programming/Descriptive Statistics/weekly_max.csv")
-write.csv(weekly_std_devs,"C:/Users/l.vankempen/Desktop/Thesis Paper/Programming/Descriptive Statistics/weekly_std_devs.csv")
-rm(weekly_means, weekly_mins, weekly_max, weekly_std_devs)
+write.csv(weekly_means, "C:/Users/l.vankempen/Documents/Thesis Paper/Programming/Descriptive Statistics/weekly_means.csv")
+write.csv(weekly_mins, "C:/Users/l.vankempen/Documents/Thesis Paper/Programming/Descriptive Statistics/weekly_mins.csv")
+write.csv(weekly_max,"C:/Users/l.vankempen/Documents/Thesis Paper/Programming/Descriptive Statistics/weekly_max.csv")
+write.csv(weekly_std_devs,"C:/Users/l.vankempen/Documents/Thesis Paper/Programming/Descriptive Statistics/weekly_std_devs.csv")
+
+## Construct some descriptive plots for in thesis paper
+
+# Plot of churners per week
+churnPlot <-ggplot(weekly_churners, aes(x=weekly_churners$yearweek, y=weekly_churners$weekly_churn)) +
+geom_line(aes(group=1)) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Yearweek") +
+ylab("Number of churners")+ggtitle("Total number of churners per week") + theme(plot.title = element_text(hjust=0.5, size =22)) +
+scale_x_discrete(breaks=weekly_churners$yearweek[seq(1,nrow(weekly_churners),by=2)]) + coord_fixed(ratio = 0.10) +
+  theme(axis.title=element_text(size =17))
+ggsave(filename="churnPerWeek.eps",plot = churnPlot)
+  
+
+
